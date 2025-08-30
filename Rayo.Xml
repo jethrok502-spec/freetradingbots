@@ -1,0 +1,148 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="initial_amount">Initial Amount</variable>
+    <variable id="loss_amount">Loss Amount</variable>
+    <variable id="expected_profit">Expected Profit</variable>
+    <variable id="win_amount">Win Amount</variable>
+    <variable id="current_stake">Current Stake</variable>
+  </variables>
+
+  <!-- Trade definition: market + trade type + contract -->
+  <block type="trade_definition" id="trade_def" deletable="false" x="0" y="50">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="market_def" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">R_100</field>
+        <next>
+          <block type="trade_definition_tradetype" id="tradetype_def" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">overunder</field>
+            <next>
+              <block type="trade_definition_contracttype" id="contract_def" deletable="false" movable="false">
+                <field name="CONTRACTTYPE_LIST">digitover</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+
+  <!-- BEFORE PURCHASE: set stake using variable "initial_amount" -->
+  <block type="before_purchase" id="before_purchase_block" x="30" y="300">
+    <statement name="BEFORE_PURCHASE">
+      <block type="trade_definition_stake" id="stake_def">
+        <!-- Currency and stake value are set here. 
+             Change the <field name="STAKE"> value or modify variable in DBot editor. -->
+        <field name="CURRENCY">USD</field>
+        <field name="STAKE">1</field>
+      </block>
+    </statement>
+  </block>
+
+  <!-- AFTER PURCHASE: notify result and check simple profit/loss conditions -->
+  <block type="after_purchase" id="after_purchase_block" x="30" y="470">
+    <statement name="AFTER_PURCHASE">
+      <block type="controls_if" id="if_result">
+        <!-- If block: always show a notification about trade result -->
+        <value name="IF0">
+          <block type="logic_boolean" id="true_cond">
+            <field name="BOOL">TRUE</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="notify" id="notify_result">
+            <field name="NOTIFICATION_TYPE">info</field>
+            <value name="MESSAGE">
+              <block type="text_join" id="msg_join">
+                <mutation items="3" />
+                <value name="ADD0">
+                  <block type="text" id="txt1">
+                    <field name="TEXT">Trade finished. Check results in account.</field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="text" id="txt2">
+                    <field name="TEXT"> Current stake: </field>
+                  </block>
+                </value>
+                <value name="ADD2">
+                  <block type="variables_get" id="get_stake">
+                    <field name="VAR" id="current_stake">Current Stake</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <!-- Simple placeholder: notify take-profit reached -->
+              <block type="controls_if" id="tp_sl_check">
+                <value name="IF0">
+                  <block type="logic_compare" id="cmp_tp">
+                    <field name="OP">GT</field>
+                    <value name="A">
+                      <block type="variables_get" id="get_profit_var">
+                        <field name="VAR" id="expected_profit">Expected Profit</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="math_number" id="zero_num">
+                        <field name="NUM">0</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="notify" id="notify_tp">
+                    <field name="NOTIFICATION_TYPE">success</field>
+                    <value name="MESSAGE">
+                      <block type="text" id="tp_text">
+                        <field name="TEXT">Take-profit target set. Edit expected profit variable to enable automatic logic.</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+                <next>
+                  <block type="controls_if" id="sl_check">
+                    <value name="IF0">
+                      <block type="logic_compare" id="cmp_sl">
+                        <field name="OP">GT</field>
+                        <value name="A">
+                          <block type="variables_get" id="get_loss_var">
+                            <field name="VAR" id="loss_amount">Loss Amount</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="math_number" id="zero_num2">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="notify" id="notify_sl">
+                        <field name="NOTIFICATION_TYPE">warning</field>
+                        <value name="MESSAGE">
+                          <block type="text" id="sl_text">
+                            <field name="TEXT">Stop-loss set. Edit loss amount variable to enable automatic logic.</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <!-- informational text block (not executed) to guide you -->
+  <block type="text" id="info_block" x="20" y="700">
+    <field name="TEXT">Notes: This bot is a baseline. 
+Edit variables "Initial Amount", "Expected Profit" and "Loss Amount" in the DBot editor. 
+If you want martingale or automated stake adjustments added, ask me and I'll extend this file.</field>
+  </block>
+</xml>
